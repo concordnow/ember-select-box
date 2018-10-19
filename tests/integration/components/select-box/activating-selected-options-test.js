@@ -53,3 +53,26 @@ test('activating selected options', function(assert) {
   assert.notEqual(id, nextID,
     'the active descendant is updated');
 });
+
+test('activating selected option via the api', function(assert) {
+  assert.expect(2);
+
+  this.on('activated', (value, sb) => {
+    assert.equal(value, 'foo',
+      'activating an option sends an action with the value');
+
+    assert.ok(typeof sb === 'object',
+      'sends the api');
+  });
+
+  this.render(hbs`
+    {{#select-box as |sb|}}
+      {{sb.selected-option value="foo" on-activate=(action "activated")}}
+      <button onclick={{action sb.activateSelectedOptionAtIndex 0}}>
+        Activate foo
+      </button>
+    {{/select-box}}
+  `);
+
+  this.$('button').trigger('click');
+});
