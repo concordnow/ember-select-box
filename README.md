@@ -143,6 +143,10 @@ ember install @zestia/ember-select-box
       <td></td>
     </tr>
     <tr>
+      <td>on-press-del</td>
+      <td></td>
+    </tr>
+    <tr>
       <td>on-press-tab</td>
       <td></td>
     </tr>
