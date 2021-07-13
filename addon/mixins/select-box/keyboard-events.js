@@ -1,8 +1,7 @@
 import Mixin from '@ember/object/mixin';
 import { capitalize } from '@ember/string';
-import invokeAction from '../../../utils/invoke-action';
 
-const keys = {
+export const keys = {
   8:  'backspace',
   9:  'tab',
   13: 'enter',
@@ -23,22 +22,33 @@ export default Mixin.create({
 
   _keyPressAction(e) {
     const key = keys[e.which];
+
     if (!key) {
       return;
     }
-    const actionName = `on-press-${key}`;
-    invokeAction(this, actionName, e, this.get('api'));
+
+    const action = this.get(`on-press-${key}`);
+
+    if (typeof action !== 'function') {
+      return;
+    }
+
+    action(e, this.get('api'));
   },
 
   _keyPressMethod(e) {
     const key = capitalize(keys[e.which] || '');
+
     if (!key) {
       return;
     }
-    const methodName = `press${key}`;
-    const func = this[methodName];
-    if (typeof func === 'function') {
-      func.apply(this, arguments);
+
+    const method = this[`press${key}`];
+
+    if (typeof method !== 'function') {
+      return;
     }
+
+    method.apply(this, arguments);
   }
 });

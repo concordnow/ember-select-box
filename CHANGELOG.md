@@ -1,5 +1,47 @@
 # Changelog
 
+4.2.3
+
+* Internal changes
+* One way value attributes
+
+4.2.2
+
+* Remove `invokeAction` util
+
+4.2.1
+
+* `value` for a multiple select can now be a promise for an array, whereas originally it was always
+expecting an array.
+* Removes `on-build-selection` from native select component
+
+4.2.0
+
+* Previously, the behaviour of selecting multiple options with the faux-select component was
+undefined. With the intention that developers use `sb.update(myValues)` to implement the multiple
+behaviour they want. But, it is rare you want anything other than to mimic a native select, by
+toggling the selected item from the array of values. Hence this is now the default behaviour.
+More info: https://github.com/zestia/ember-select-box/pull/15. A new action `on-build-selection`
+allows you to customise this.
+
+* When using a multiple select box, the `on-select` action will fire with an array of the selected
+values. This array is frozen, and is not the same as the one passed into the select box originally.
+
+4.1.0
+
+* Changes `scrollIntoView` signature. Now finds the first scrollable parent, and scrolls that
+  rather than assuming the select box options will be the scrollable element.
+
+4.0.1
+
+* Make select box support style attribute
+
+4.0.0
+
+* Yield the main select box element on the api
+* Run [codemod](https://github.com/rwjblue/ember-qunit-codemod) on test sutie
+* Change path to certain mixins
+
 3.0.10
 
 * Fix travis builds

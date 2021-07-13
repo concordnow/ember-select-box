@@ -1,9 +1,12 @@
 import Component from '@ember/component';
 import BaseSelectBox from '../../mixins/select-box/base';
 import layout from '../../templates/components/select-box/native';
-import { A as emberA } from '@ember/array';
 
-export default Component.extend(BaseSelectBox, {
+const mixins = [
+  BaseSelectBox
+];
+
+export default Component.extend(...mixins, {
   layout,
   tagName: 'select',
   attributeBindings: [
@@ -30,7 +33,7 @@ export default Component.extend(BaseSelectBox, {
       selectedValues = unregisteredSelected;
     }
 
-    if (this.get('multiple')) {
+    if (this.get('isMultiple')) {
       this.send('select', selectedValues);
     } else {
       this.send('select', selectedValues[0]);
@@ -38,17 +41,14 @@ export default Component.extend(BaseSelectBox, {
   },
 
   _getRegisteredSelectedValues() {
-    return emberA(
-      this.get('options')
-        .filter(option => option.get('element.selected'))
-        .map(option => option.get('value'))
-    );
+    return this.get('options')
+      .filter(option => option.get('element.selected'))
+      .map(option => option.get('internalValue'));
   },
 
   _getUnregisteredSelectedValues() {
-    return emberA(
-      [].slice.call(this.get('element').querySelectorAll('option:checked'))
-        .map(option => option.value)
-    );
+    return [].slice
+      .call(this.get('element').querySelectorAll('option:checked'))
+      .map(option => option.value);
   }
 });

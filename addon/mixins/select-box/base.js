@@ -1,34 +1,33 @@
 import Mixin from '@ember/object/mixin';
-import Nameable from  './general/nameable';
+import Nameable from  '../general/nameable';
 import HasOptions from './registration/has-options';
-import Focusable from  './select-box/focusable';
-import trySet from '../../utils/try-set';
+import Focusable from  './focusable';
 import { makeArray } from '@ember/array';
-import { bind, scheduleOnce } from '@ember/runloop';
-import invokeAction from '../../utils/invoke-action';
+import { bind, next, scheduleOnce } from '@ember/runloop';
 import { all, resolve } from 'rsvp';
+const { freeze } = Object;
 
-export default Mixin.create(
+const mixins = [
   Nameable,
   HasOptions,
-  Focusable, {
+  Focusable
+];
 
+export default Mixin.create(...mixins, {
   api: null,
-  promiseID: 0,
+  valueID: 0,
 
   init() {
     this._super(...arguments);
-    this._init();
+    this.getWithDefault('on-init', () => {})(this.get('api'));
   },
 
   didReceiveAttrs() {
     this._super(...arguments);
     this.set('isMultiple', this.get('multiple'));
+    this.set('changedValue', this.get('value') !== this.get('internalValue'));
 
-    if (
-      this.get('value') !== this.get('selectedValue') ||
-      !this.get('doneInitialUpdate')
-    ) {
+    if (this.get('changedValue') || !this.get('doneInitialUpdate')) {
       this._update(this.get('value'));
       this.set('doneInitialUpdate', true);
     }
@@ -36,62 +35,49 @@ export default Mixin.create(
 
   _select(value) {
     this._update(value).then(() => {
-      this._selected();
+      this.getWithDefault('on-select', () => {})(this.get('internalValue'), this.get('api'));
     });
   },
 
   _update(value) {
-    value = this._normaliseValue(value);
-    value = this._resolveValue(value);
-
-    const id = this.get('promiseID') + 1;
-
-    trySet(this, 'promiseID', id);
+    const val = this._resolveValue(value);
+    const id = this.incrementProperty('valueID');
 
     const success = bind(this, '_resolvedValue', id, false);
     const failure = bind(this, '_resolvedValue', id, true);
 
-    return value.then(success, failure);
-  },
+    this.set('internalValue', value);
 
-  _init() {
-    invokeAction(this, 'on-init', this.get('api'));
-  },
-
-  _updated() {
-    invokeAction(this, 'on-update', this.get('selectedValue'), this.get('api'));
-  },
-
-  _selected() {
-    invokeAction(this, 'on-select', this.get('selectedValue'), this.get('api'));
-  },
-
-  _normaliseValue(value) {
-    if (this.get('isMultiple')) {
-      value = makeArray(value);
-    }
-    return value;
+    return val.then(success, failure);
   },
 
   _resolveValue(value) {
-    if (this.get('isMultiple')) {
-      return all(value);
-    }
-    return resolve(value);
+    return resolve(value).then(value => {
+      if (this.get('isMultiple')) {
+        return all(makeArray(value));
+      }
+      return value;
+    });
   },
 
   _resolvedValue(id, failed, value) {
-    const superseded = id < this.get('promiseID');
-
-    if (superseded || this.get('isDestroyed')) {
+    if (id < this.get('valueID') || this.get('isDestroyed')) {
       return;
     }
 
-    this.set('selectedValue', value);
+    if (this.get('isMultiple')) {
+      value = freeze(value);
+    }
 
-    this.rerender();
+    this.set('internalValue', value);
 
-    scheduleOnce('afterRender', this, '_updated');
+    scheduleOnce('afterRender', this, '_rendered');
+  },
+
+  _rendered() {
+    next(this, () => {
+      this.send('_updated');
+    });
   },
 
   actions: {
@@ -100,6 +86,14 @@ export default Mixin.create(
     },
 
     select(value) {
+      this._select(value);
+    },
+
+    _updated() {
+      this.getWithDefault('on-update', () => {})(this.get('internalValue'), this.get('api'));
+    },
+
+    _select(value) {
       this._select(value);
     }
   }

@@ -1,21 +1,22 @@
 import Component from '@ember/component';
 import layout from '../../templates/components/select-box/option';
-import BaseOption from '../../mixins/select-box/option/base';
-import Styleable from '../../mixins/select-box/general/styleable';
-import Selectable from '../../mixins/select-box/option/selectable';
 import Activatable from '../../mixins/select-box/option/activatable';
-import Disableable from '../../mixins/select-box/general/disableable';
-import Indexable from '../../mixins/select-box/general/indexable';
-import invokeAction from '../../utils/invoke-action';
+import BaseOption from '../../mixins/select-box/option/base';
+import Disableable from '../../mixins/general/disableable';
+import Indexable from '../../mixins/general/indexable';
+import Selectable from '../../mixins/select-box/option/selectable';
+import Styleable from '../../mixins/general/styleable';
 
-export default Component.extend(
-  BaseOption,
-  Selectable,
-  Styleable,
-  Indexable,
+const mixins = [
   Activatable,
-  Disableable, {
+  BaseOption,
+  Disableable,
+  Indexable,
+  Selectable,
+  Styleable
+];
 
+export default Component.extend(...mixins, {
   layout,
   classNameSuffix: 'option',
   ariaRole: 'option',
@@ -37,12 +38,5 @@ export default Component.extend(
 
   click() {
     this.send('select');
-  },
-
-  actions: {
-    select() {
-      this._super(...arguments);
-      invokeAction(this, 'on-select', this.get('value'), this.get('-api'));
-    }
   }
 });

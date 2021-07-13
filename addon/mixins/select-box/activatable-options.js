@@ -1,6 +1,6 @@
 import Mixin from '@ember/object/mixin';
 import { computed } from '@ember/object';
-import scrollIntoView from '../../../utils/select-box/scroll-into-view';
+import scrollIntoView from '../../utils/select-box/scroll-into-view';
 
 export default Mixin.create({
   init() {
@@ -23,7 +23,7 @@ export default Mixin.create({
   _activatedOption() {
     const activeOption = this.get('activeOption');
     if (activeOption) {
-      activeOption.send('_activate');
+      activeOption.send('_activated');
     }
   },
 
@@ -32,10 +32,7 @@ export default Mixin.create({
   },
 
   _scrollActiveOptionIntoView() {
-    scrollIntoView(
-      this.get('activeOption.element'),
-      this.get('optionsContainer.element')
-    );
+    scrollIntoView(this.get('activeOption.element'));
   },
 
   activeOption: computed('activeOptionIndex', 'options', function() {
@@ -46,14 +43,17 @@ export default Mixin.create({
     activateOptionAtIndex(index, scroll) {
       this._activateOptionAtIndex(index, scroll);
     },
+
     activateNextOption(scroll) {
       const next = this.get('activeOptionIndex') + 1;
       this._activateOptionAtIndex(next, scroll);
     },
+
     activatePreviousOption(scroll) {
       const prev = this.get('activeOptionIndex') - 1;
       this._activateOptionAtIndex(prev, scroll);
     },
+
     deactivateOptions() {
       this._deactivateOptions();
     }
